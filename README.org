@@ -10,7 +10,7 @@ This repository contains my personal Emacs configuration. It's always a work in 
 To use this configuration, clone this repository into your `~/.emacs.d` directory:
 
 #+BEGIN_SRC bash
-git clone https://github.com/yourusername/emacs-config.git ~/.emacs.d
+git clone https://github.com/mbrignall/emacs-config.git ~/.emacs.d
 #+END_SRC
 
 * Features
