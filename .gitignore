@@ -1,0 +1,10 @@
+.cache/
+.local/
+auto-save-list/
+eln-cache/
+elpa/
+straight/
+transient/
+var/
+projectile-bookmarks.eld
+recentf
