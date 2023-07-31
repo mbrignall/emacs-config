@@ -1,0 +1,43 @@
+#+TITLE: My Emacs Configuration
+#+AUTHOR: mbrignall
+
+* Introduction
+
+This repository contains my personal Emacs configuration. It's always a work in progress as I continue to tweak it to better suit my needs.
+
+* Setup
+
+To use this configuration, clone this repository into your `~/.emacs.d` directory:
+
+#+BEGIN_SRC bash
+git clone https://github.com/yourusername/emacs-config.git ~/.emacs.d
+#+END_SRC
+
+* Features
+
+** Packages
+
+This configuration uses a number of packages to enhance the Emacs experience, including:
+
+- org-mode: For note-taking and project management.
+- magit: A powerful interface to the Git version control system.
+- ivy & counsel: For efficient, flexible, and intuitive completion.
+- projectile: Project interaction library for Emacs.
+- vterm: Fully-featured terminal emulator.
+- treemacs: A tree style file explorer package.
+- nix-mode: Major mode for editing .nix files.
+- and many more...
+
+** Theme
+
+The configuration uses the Leuven-dark theme for a visually pleasing and easy-on-the-eyes experience.
+
+** Other Features
+
+- Configured for programming in various languages.
+- Use of `use-package` for clean and easy package management.
+- Custom keybindings for efficient navigation and editing.
+
+* Contributions
+
+Feel free to fork this repository and customize it to your liking. If you have any suggestions or improvements, pull requests are welcome!
