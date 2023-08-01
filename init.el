@@ -48,7 +48,6 @@
 ;; Kill the warning about cl
 (setq byte-compile-warnings '(cl-functions))
 (setq mouse-autoselect-window t)
-(windmove-default-keybindings)
 (column-number-mode)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
@@ -97,7 +96,13 @@
   :quelpa (org-ql :fetcher github :repo "alphapapa/org-ql"
 		  :files (:defaults (:exclude "helm-org-ql.el"))))
 
-(add-to-list 'load-path "~/.emacs.d/org-timeblock/org-timeblock.el")
+(add-to-list 'load-path "~/.emacs.d/org-timeblock/")
+(require 'org-timeblock)
+
+(setq org-todo-keywords
+      '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+
+(setq org-agenda-files '("~/org/"))
 
 ;; Copilot -----------------------------------------------
 
@@ -125,13 +130,13 @@
   :config
   (setq nix-indent-function #'nix-indent-line))
 
-;; Fancy dashboard with Rubin quotes ----------------------
+;; Dashboard with Rubin quotes ----------------------
 
 (use-package dashboard
   :ensure t
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-banner-logo-title "Welcome to Emacs Dashboard")
+  (setq dashboard-banner-logo-title "The Emacs text editor")
   ;; Set the banner image
   ;; Content is not centered by default. To center, set
   (setq dashboard-center-content t)
