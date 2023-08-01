@@ -8,3 +8,5 @@ transient/
 var/
 projectile-bookmarks.eld
 recentf
+org-timeblock/
+quelpa/

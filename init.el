@@ -15,9 +15,46 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+(unless (package-installed-p 'quelpa)
+  (with-temp-buffer
+    (url-insert-file-contents "https://github.com/quelpa/quelpa/raw/master/quelpa.el")
+    (eval-buffer)
+    (quelpa-self-upgrade)))
+
+(unless (package-installed-p 'quelpa-use-package)
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git")))
+(require 'quelpa-use-package)
+
 ;; Install use-package and make it use straight.el by default
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
+
+
+;; Keyboard-centric user interface
+(setq inhibit-startup-message t)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; Set up the visible bell
+(setq visible-bell t)
+
+(set-face-attribute 'default nil :font "FiraMono Nerd Font" :height 100)
+
+;; Kill the warning about cl
+(setq byte-compile-warnings '(cl-functions))
+(setq mouse-autoselect-window t)
+(windmove-default-keybindings)
+(column-number-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+
+;; Make ESC quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 
 ;; Package setup -------------------------------------------
 
@@ -28,7 +65,8 @@
   :ensure t
   :hook (after-init . doom-modeline-mode))
 
-;; Org mode
+;; Org mode -----------------------------------------------
+
 (use-package org
   :config
   (setq org-startup-indented t
@@ -36,18 +74,33 @@
   (add-hook 'org-mode-hook 'org-indent-mode))
 (add-hook 'text-mode-hook 'turn-on-visual-line-mode)
 
-(use-package org-bullets)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+(use-package org-modern
+  :ensure t
+  :custom
+  (org-modern-hide-stars nil); adds extra indentation
+  (org-modern-table nil)
+  (org-modern-list 
+   '(;; (?- . "-")
+     (?* . "•")
+     (?+ . "‣")))
+  :hook
+  (org-mode . org-modern-mode)
+  (org-agenda-finalize . org-modern-agenda))
 
-(use-package org-superstar
-  :hook (org-mode . org-superstar-mode)
-  :config
-  (setq org-superstar-headline-bullets-list '("⁖" "◉" "○" "✸" "✿")))
+(use-package org-modern-indent
+  :straight (org-modern-indent :type git :host github :repo "jdtsmith/org-modern-indent")
+  :config ; add late to hook
+  (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
 
-;; Kill the warning about cl
-(setq byte-compile-warnings '(cl-functions))
 
-;; Copilot
+(use-package org-ql
+  :quelpa (org-ql :fetcher github :repo "alphapapa/org-ql"
+		  :files (:defaults (:exclude "helm-org-ql.el"))))
+
+(add-to-list 'load-path "~/.emacs.d/org-timeblock/org-timeblock.el")
+
+;; Copilot -----------------------------------------------
+
 (use-package copilot
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el" "*.org"))
   :ensure t)
@@ -56,7 +109,24 @@
 (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
 (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
 
-;; Fancy dashboard with Rubin quotes
+;; Eglot --------------------------------------------------
+
+(use-package eglot
+  :hook ((python-mode . eglot-ensure)
+         (rust-mode . eglot-ensure)
+         (nix-mode . eglot-ensure)
+         (css-mode . eglot-ensure)
+         (html-mode . eglot-ensure)
+         (yaml-mode . eglot-ensure)))
+
+(use-package nix-mode
+  :ensure t
+  :mode "\\.nix\\'"
+  :config
+  (setq nix-indent-function #'nix-indent-line))
+
+;; Fancy dashboard with Rubin quotes ----------------------
+
 (use-package dashboard
   :ensure t
   :config
@@ -70,7 +140,8 @@
   ;; 'official which displays the official emacs logo
   ;; 'logo which displays an alternative emacs logo
   ;; 1, 2 or 3 which displays one of the text banners
-  ;; "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever image/text you would prefer
+  ;; "path/to/your/image.png" or "path/to/your/text.txt"
+  ;; which displays whatever image/text you would prefer
 
   (setq dashboard-items '((recents  . 5)
                           (projects . 5))))
@@ -89,28 +160,7 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-
-;; Make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
-(column-number-mode)
-
-(setq mouse-autoselect-window t)
-
-(windmove-default-keybindings)
-
-;; Keyboard-centric user interface
-(setq inhibit-startup-message t)
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
-  (scroll-bar-mode -1)
-(defalias 'yes-or-no-p 'y-or-n-p)
-
-;; Set up the visible bell
-(setq visible-bell t)
-
-(set-face-attribute 'default nil :font "FiraMono Nerd Font" :height 100)
+;; Ivy ----------------------------------------------------
 
 (use-package ivy
   :diminish
@@ -130,16 +180,27 @@
   :config
   (ivy-mode 1))
 
-;; Temp helpers
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+;; Add prescient and ivy-prescient better sorting and filtering
+(use-package prescient
+  :config
+  (prescient-persist-mode 1))
+
+(use-package ivy-prescient
+  :after (ivy prescient)
+  :config
+  (ivy-prescient-mode 1))
+
+;; Temp helpers -------------------------------------------
+
 (use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode:
   :config
   (setq which-key-idle-delay 1))
-
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -158,15 +219,7 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(use-package eglot
-  :hook ((python-mode . eglot-ensure)
-         (rust-mode . eglot-ensure)
-	 (nix-mode . eglot-ensure)
-	 (css-mode . eglot-ensure)
-	 (html-mode . eglot-ensure)
-	 (yaml-mode . eglot-ensure)))
-
-;; Vterm config
+;; Vterm config --------------------------------------------
 (use-package vterm
   :commands vterm
   :config
@@ -175,18 +228,12 @@
 (global-set-key [f2] 'vterm-toggle)
 (global-set-key [C-f2] 'vterm-toggle-cd)
 
-;; Consider switching from neotree to treemacs
+;; Treemacs config ------------------------------------------
 (use-package treemacs
   :bind ("<f8>" . treemacs))
 
-(use-package nix-mode
-  :ensure t
-  :mode "\\.nix\\'"
-  :config
-  (setq nix-indent-function #'nix-indent-line))
 
-
-;; Projectile Configuration --------------------------------------
+;; Projectile Configuration ---------------------------------
 
 (use-package projectile
   :diminish projectile-mode
@@ -203,17 +250,7 @@
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
 
-;; Add prescient and ivy-prescient for better sorting and filtering
-(use-package prescient
-  :config
-  (prescient-persist-mode 1))
-
-(use-package ivy-prescient
-  :after (ivy prescient)
-  :config
-  (ivy-prescient-mode 1))
-
-;; Magit Configuration -------------------------------------------
+;; Magit Configuration --------------------------------------
 
 (use-package magit
   :init
