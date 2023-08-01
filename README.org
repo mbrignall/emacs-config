@@ -5,13 +5,13 @@
 
 This repository contains my personal Emacs configuration. It's always a work in progress as I continue to tweak it to better suit my needs.
 
-The motivation was fueled by the release of Emacs 29.1 and all the new features included.
+The motivation was fueled by the release of *Emacs 29.1* and all the new features included.
 
 Check out the updates [[https://www.masteringemacs.org/article/whats-new-in-emacs-29-1][here]]!
 
 * Setup
 
-To use this configuration, clone this repository into your `~/.emacs.d` directory:
+To use this configuration, clone this repository into your ~~/.emacs.d~ directory:
 
 #+BEGIN_SRC bash
  git clone https://github.com/mbrignall/emacs-config.git ~/.emacs.d
