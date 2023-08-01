@@ -11,7 +11,7 @@ Check out the updates [[https://www.masteringemacs.org/article/whats-new-in-emac
 
 * Setup
 
-To use this configuration, clone this repository into your ~~/.emacs.d~ directory:
+To use this configuration, clone this repository into your ~emacs.d~ directory:
 
 #+BEGIN_SRC bash
  git clone https://github.com/mbrignall/emacs-config.git ~/.emacs.d
