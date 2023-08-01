@@ -49,7 +49,7 @@
 
 ;; Copilot
 (use-package copilot
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el" "*.org"))
   :ensure t)
 
 (add-hook 'prog-mode-hook 'copilot-mode)
