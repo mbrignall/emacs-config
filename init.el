@@ -69,7 +69,9 @@
 (use-package org
   :config
   (setq org-startup-indented t
-        org-hide-leading-stars t)
+        org-hide-leading-stars t
+	org-pretty-entities t
+	org-hide-emphasis-markers t)
   (add-hook 'org-mode-hook 'org-indent-mode))
 (add-hook 'text-mode-hook 'turn-on-visual-line-mode)
 
@@ -86,11 +88,12 @@
   (org-mode . org-modern-mode)
   (org-agenda-finalize . org-modern-agenda))
 
+(setq org-ellipsis "⋱")
+
 (use-package org-modern-indent
   :straight (org-modern-indent :type git :host github :repo "jdtsmith/org-modern-indent")
   :config ; add late to hook
   (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
-
 
 (use-package org-ql
   :quelpa (org-ql :fetcher github :repo "alphapapa/org-ql"
@@ -104,6 +107,23 @@
 
 (setq org-agenda-files '("~/org/"))
 
+(use-package htmlize
+  :ensure t)
+
+(use-package git
+  :ensure t
+  :init
+  (unless (file-exists-p "~/.emacs.d/reveal.js/")
+    (shell-command "git clone https://github.com/hakimel/reveal.js.git ~/.emacs.d/reveal.js")))
+
+(use-package ox-reveal
+  :ensure t
+  :config
+  (setq org-reveal-root "file:///home/mbrignall/.emacs.d/reveal.js"))
+
+(setq org-ditaa-jar-path "~/.emacs.d/ditaa.jar")
+
+
 ;; Copilot -----------------------------------------------
 
 (use-package copilot
@@ -113,6 +133,35 @@
 (add-hook 'prog-mode-hook 'copilot-mode)
 (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
 (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+
+;; Format All --------------------------------------------------
+
+(use-package format-all
+  :ensure t
+  :hook (prog-mode . format-all-mode))
+
+(setq format-all-formatters '(("Python" black) ("HTML" web-beautify) ("Nix" nixfmt)))
+(setq format-all-buffer-format-on-save t)
+
+
+;; Tree-sitter --------------------------------------------
+
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 ;; Eglot --------------------------------------------------
 
