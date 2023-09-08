@@ -54,15 +54,30 @@
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
+(setq use-dialog-box nil)
 
 ;; Package setup -------------------------------------------
 
 ;; Theme
-(load-theme 'leuven-dark t)
+(load-theme 'modus-vivendi t)
+
+(set-face-attribute 'mode-line-active nil :inherit 'mode-line)
+
+;; For current frame
+(set-frame-parameter nil 'alpha-background 80)
+;; For all new frames henceforth
+(add-to-list 'default-frame-alist '(alpha-background . 80))
 
 (use-package doom-modeline
   :ensure t
   :hook (after-init . doom-modeline-mode))
+
+;; Backup files setup
+
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
 
 ;; Org mode -----------------------------------------------
 
@@ -102,6 +117,17 @@
 (add-to-list 'load-path "~/.emacs.d/org-timeblock/")
 (require 'org-timeblock)
 
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown"))
+
+;; Use keybindings
+(use-package grip-mode
+  :ensure t
+  :bind (:map markdown-mode-command-map
+         ("g" . grip-mode)))
+
 (setq org-todo-keywords
       '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
 
@@ -140,7 +166,19 @@
   :ensure t
   :hook (prog-mode . format-all-mode))
 
-(setq format-all-formatters '(("Python" black) ("HTML" web-beautify) ("Nix" nixfmt)))
+(setq format-all-formatters
+      '(("Python" black)
+	("HTML" web-beautify)
+	("Nix" nixfmt)
+	("json" prettier)
+	("css" prettier)
+	("scss" prettier)
+	("yaml" prettier)
+	("markdown" markdownfmt)
+	("javascript" prettier)
+	("typescript" prettier)
+	("sh" shfmt)
+	))
 (setq format-all-buffer-format-on-save t)
 
 
@@ -162,6 +200,16 @@
      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+(setq major-mode-remap-alist
+ '((yaml-mode . yaml-ts-mode)
+   (bash-mode . bash-ts-mode)
+   (js2-mode . js-ts-mode)
+   (json-mode . json-ts-mode)
+   (typescript-mode . typescript-ts-mode)
+   (json-mode . json-ts-mode)
+   (css-mode . css-ts-mode)
+   (python-mode . python-ts-mode)))
 
 ;; Eglot --------------------------------------------------
 
