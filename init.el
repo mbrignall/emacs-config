@@ -32,6 +32,9 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+;; Performance tweaking for modern machines
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
 
 ;; Keyboard-centric user interface
 (setq inhibit-startup-message t)
@@ -40,10 +43,17 @@
   (scroll-bar-mode -1)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+(electric-pair-mode t)
+(show-paren-mode 1)
+(setq-default indent-tabs-mode nil)
+(savehist-mode t)
+(recentf-mode t)
+(global-auto-revert-mode t)
+
 ;; Set up the visible bell
 (setq visible-bell t)
 
-(set-face-attribute 'default nil :font "FiraMono Nerd Font" :height 100)
+;;(set-face-attribute 'default nil :font "FiraMono Nerd Font" :height 100)
 
 ;; Kill the warning about cl
 (setq byte-compile-warnings '(cl-functions))
@@ -58,15 +68,51 @@
 
 ;; Package setup -------------------------------------------
 
-;; Theme
-(load-theme 'modus-vivendi t)
+(use-package modus-themes
+  :ensure t
+  :demand
+  :init
+  (require 'modus-themes)
 
-(set-face-attribute 'mode-line-active nil :inherit 'mode-line)
+(setq modus-themes-italic-constructs t
+      modus-themes-bold-constructs t)
+
+(setq modus-themes-completions
+      '((matches . (extrabold underline))
+        (selection . (semibold italic))))
+
+(setq modus-themes-headings
+      '((1 . (rainbow overline background 1.4))
+        (2 . (rainbow background 1.3))
+        (3 . (rainbow bold 1.2))
+        (t . (semilight 1.1))))
+
+(setq modus-themes-scale-headings t)
+
+(setq modus-themes-org-blocks 'gray-background)
+
+ ;; Color customizations
+  (setq modus-themes-prompts '(bold))
+  (setq modus-themes-region '(accented))
+
+  ;; Font sizes for titles and headings, including org
+
+  (load-theme 'modus-operandi-tinted t))
+  
+(use-package nerd-icons
+  :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  (nerd-icons-font-family "Symbols Nerd Font Mono")
+  )
+
+;; (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
 
 ;; For current frame
-(set-frame-parameter nil 'alpha-background 80)
+;;(set-frame-parameter nil 'alpha-background 80)
 ;; For all new frames henceforth
-(add-to-list 'default-frame-alist '(alpha-background . 80))
+;;(add-to-list 'default-frame-alist '(alpha-background . 80))
 
 (use-package doom-modeline
   :ensure t
@@ -103,19 +149,27 @@
   (org-mode . org-modern-mode)
   (org-agenda-finalize . org-modern-agenda))
 
-(setq org-ellipsis "⋱")
+(setq org-ellipsis " ▾")
 
-(use-package org-modern-indent
-  :straight (org-modern-indent :type git :host github :repo "jdtsmith/org-modern-indent")
-  :config ; add late to hook
-  (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+;; (use-package org-modern-indent
+;;   :straight (org-modern-indent :type git :host github :repo "jdtsmith/org-modern-indent")
+;;   :config ; add late to hook
+;;   (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
 
-(use-package org-ql
-  :quelpa (org-ql :fetcher github :repo "alphapapa/org-ql"
-		  :files (:defaults (:exclude "helm-org-ql.el"))))
+;; (use-package org-ql
+;;   :quelpa (org-ql :fetcher github :repo "alphapapa/org-ql"
+;; 		  :files (:defaults (:exclude "helm-org-ql.el"))))
 
-(add-to-list 'load-path "~/.emacs.d/org-timeblock/")
-(require 'org-timeblock)
+(use-package olivetti
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (olivetti-mode 1)
+              (setq olivetti-body-width 100)
+              (define-key org-mode-map (kbd "<C-mouse-4>") 'text-scale-increase)
+              (define-key org-mode-map (kbd "<C-mouse-5>") 'text-scale-decrease))))
+
 
 (use-package markdown-mode
   :ensure t
@@ -129,7 +183,7 @@
          ("g" . grip-mode)))
 
 (setq org-todo-keywords
-      '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+      '((sequence "TODO" "IN-PROGRESS" "DONE")))
 
 (setq org-agenda-files '("~/org/"))
 
@@ -149,6 +203,12 @@
 
 (setq org-ditaa-jar-path "~/.emacs.d/ditaa.jar")
 
+(use-package pdf-tools
+  :load-path "site-lisp/pdf-tools/lisp"
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install :no-query))
+
 
 ;; Copilot -----------------------------------------------
 
@@ -167,8 +227,8 @@
   :hook (prog-mode . format-all-mode))
 
 (setq format-all-formatters
-      '(("Python" black)
-	("HTML" web-beautify)
+      '(("python" ruff)
+	("HTML" prettier)
 	("Nix" nixfmt)
 	("json" prettier)
 	("css" prettier)
@@ -182,7 +242,13 @@
 (setq format-all-buffer-format-on-save t)
 
 
-;; Tree-sitter --------------------------------------------
+;; ;; Tree-sitter --------------------------------------------
+
+(use-package tree-sitter
+  :ensure t
+  :config
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
@@ -202,30 +268,48 @@
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 (setq major-mode-remap-alist
- '((yaml-mode . yaml-ts-mode)
-   (bash-mode . bash-ts-mode)
-   (js2-mode . js-ts-mode)
-   (json-mode . json-ts-mode)
-   (typescript-mode . typescript-ts-mode)
-   (json-mode . json-ts-mode)
-   (css-mode . css-ts-mode)
-   (python-mode . python-ts-mode)))
+      '((yaml-mode . yaml-ts-mode)
+	(go-mode . go-ts-mode)
+	(html-mode . html-ts-mode)
+	(bash-mode . bash-ts-mode)
+	(js2-mode . js-ts-mode)
+	(json-mode . json-ts-mode)
+	(typescript-mode . typescript-ts-mode)
+	(json-mode . json-ts-mode)
+	(css-mode . css-ts-mode)
+	(python-mode . python-ts-mode)))
+
+(use-package company
+  :commands company-mode
+  :init
+  (add-hook 'prog-mode-hook #'company-mode))
+
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
 
 ;; Eglot --------------------------------------------------
 
 (use-package eglot
   :hook ((python-mode . eglot-ensure)
+	 (html-mode . eglot-ensure)
+	 (go-mode . eglot-ensure)
          (rust-mode . eglot-ensure)
          (nix-mode . eglot-ensure)
          (css-mode . eglot-ensure)
-         (html-mode . eglot-ensure)
          (yaml-mode . eglot-ensure)))
 
-(use-package nix-mode
+(use-package lsp-pyright
   :ensure t
-  :mode "\\.nix\\'"
-  :config
-  (setq nix-indent-function #'nix-indent-line))
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
+
+(use-package blacken
+  :ensure t
+  :init
+  (setq blacken-line-length 80) ; Set your desired line length
+  :hook (python-mode . blacken-mode))
 
 ;; Dashboard with Rubin quotes ----------------------
 
@@ -233,25 +317,26 @@
   :ensure t
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-banner-logo-title "The Emacs text editor")
+  (setq dashboard-banner-logo-title "Welcome home")
   ;; Set the banner image
   ;; Content is not centered by default. To center, set
   (setq dashboard-center-content t)
-  (setq dashboard-startup-banner 'logo)
+  (setq dashboard-startup-banner "~/.emacs.d/xemacs_color.svg")
   ;; Value can be
   ;; 'official which displays the official emacs logo
   ;; 'logo which displays an alternative emacs logo
   ;; 1, 2 or 3 which displays one of the text banners
   ;; "path/to/your/image.png" or "path/to/your/text.txt"
   ;; which displays whatever image/text you would prefer
-
+  
   (setq dashboard-items '((recents  . 5)
                           (projects . 5))))
 
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
-(setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
+(setq dashboard-display-icons-p t)
 (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
+(setq dashboard-set-file-icons t)
 
 (dashboard-modify-heading-icons '((recents . "file-text")
                                   (bookmarks . "book")))
@@ -259,57 +344,75 @@
 (setq dashboard-footer-messages '("Zoom in and obsess. Zoom out and observe. We get to choose."))
 
 
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-
-;; Ivy ----------------------------------------------------
+;; Ivy and Counsel --------------------------------------------
 
 (use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
-
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-
-;; Add prescient and ivy-prescient better sorting and filtering
-(use-package prescient
-  :config
-  (prescient-persist-mode 1))
+        :diminish
+        :bind (("C-s" . swiper)
+                 :map ivy-minibuffer-map
+                 ("TAB" . ivy-alt-done)
+                 ("C-l" . ivy-alt-done)
+                 ("C-j" . ivy-next-line)
+                 ("C-k" . ivy-previous-line)
+                 :map ivy-switch-buffer-map
+                 ("C-k" . ivy-previous-line)
+                 ("C-l" . ivy-done)
+                 ("C-d" . ivy-switch-buffer-kill)
+                 :map ivy-reverse-i-search-map
+                 ("C-k" . ivy-previous-line)
+                 ("C-d" . ivy-reverse-i-search-kill))
+        :init
+        (ivy-mode 1))
 
 (use-package ivy-prescient
-  :after (ivy prescient)
+        :after counsel
+        :custom
+        (ivy-prescient-enable-filtering nil)
+        :config
+        (prescient-persist-mode 1)
+        (ivy-prescient-mode 1))
+
+(use-package counsel
+        :bind (("M-x" . counsel-M-x)
+                 ("C-x b" . counsel-ibuffer)
+                 ("C-x C-f" . counsel-find-file)
+                 :map minibuffer-local-map
+                 ("C-r" . 'counsel-minibuffer-history))
+        :config
+        (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
+
+(use-package all-the-icons
+  :if (display-graphic-p)
   :config
-  (ivy-prescient-mode 1))
+  (setq all-the-icons-scale-factor 0.8))
+
+(use-package all-the-icons-ivy-rich
+  :ensure t
+  :init (all-the-icons-ivy-rich-mode 1))
+(setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+(setq ivy-rich-path-style 'abbrev)
+
+(use-package ivy-rich
+  :ensure t
+  :init (ivy-rich-mode 1))
+
+(use-package all-the-icons-ibuffer
+  :ensure t
+  :hook (ibuffer-mode . all-the-icons-ibuffer-mode))
+
 
 ;; Temp helpers -------------------------------------------
+
+(use-package windmove
+  :config
+  ;; use shift + arrow keys to switch between visible buffers
+  (windmove-default-keybindings))
 
 (use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode:
   :config
   (setq which-key-idle-delay 1))
-
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
 
 (use-package helpful
   :custom
@@ -322,6 +425,7 @@
   ([remap describe-key] . helpful-key))
 
 ;; Vterm config --------------------------------------------
+
 (use-package vterm
   :commands vterm
   :config
@@ -331,9 +435,17 @@
 (global-set-key [C-f2] 'vterm-toggle-cd)
 
 ;; Treemacs config ------------------------------------------
-(use-package treemacs
-  :bind ("<f8>" . treemacs))
 
+(use-package treemacs
+  :bind ("<f1>" . treemacs))
+
+(use-package treemacs-all-the-icons
+  :after (treemacs)
+  :ensure t)
+
+(use-package treemacs-magit
+  :after (treemacs magit)
+:ensure t)
 
 ;; Projectile Configuration ---------------------------------
 
@@ -361,8 +473,4 @@
   (message "Loaded Magit!")
   :bind (("C-x g" . magit-status)
          ("C-x C-g" . magit-status)))
-
-
-
-
 

@@ -3,10 +3,16 @@
 auto-save-list/
 eln-cache/
 elpa/
+multisession/files/emoji/
 straight/
 transient/
+tree-sitter/
 var/
 projectile-bookmarks.eld
 recentf
 org-timeblock/
 quelpa/
+reveal.js/
+recentf
+tramp
+projects
