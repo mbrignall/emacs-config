@@ -23,7 +23,8 @@ To use this configuration, clone this repository into your ~emacs.d~ directory:
 
 This configuration uses a number of packages to enhance the Emacs experience, including:
 
-- org-mode: For note-taking and project management.
+- org-mode: For note-taking and project management
+- modus-themes: Currently the tinted version! :p
 - magit: A powerful interface to the Git version control system.
 - ivy & counsel: For efficient, flexible, and intuitive completion.
 - projectile: Project interaction library for Emacs.
@@ -34,7 +35,7 @@ This configuration uses a number of packages to enhance the Emacs experience, in
  
 ** Theme
 
-The configuration uses the Leuven-dark theme for a visually pleasing and easy-on-the-eyes experience.
+The configuration uses the Modus Operandi Tinted theme for a visually pleasing and easy-on-the-eyes experience.
 
 ** Other Features
 
