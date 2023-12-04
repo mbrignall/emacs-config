@@ -39,21 +39,19 @@
 ;; Keyboard-centric user interface
 (setq inhibit-startup-message t)
   (tool-bar-mode -1)
-  (menu-bar-mode -1)
+  (menu-bar-mode t)
   (scroll-bar-mode -1)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 (electric-pair-mode t)
 (show-paren-mode 1)
-(setq-default indent-tabs-mode nil)
+;;(setq-default indent-tabs-mode nil)
 (savehist-mode t)
 (recentf-mode t)
 (global-auto-revert-mode t)
 
 ;; Set up the visible bell
-(setq visible-bell t)
-
-;;(set-face-attribute 'default nil :font "FiraMono Nerd Font" :height 100)
+(setq visible-bell nil)
 
 ;; Kill the warning about cl
 (setq byte-compile-warnings '(cl-functions))
@@ -66,48 +64,19 @@
 
 (setq use-dialog-box nil)
 
+(setq mac-option-modifier 'meta)
+(setq mac-right-option-modifier nil)
+
 ;; Package setup -------------------------------------------
 
-(use-package modus-themes
-  :ensure t
-  :demand
-  :init
-  (require 'modus-themes)
-
-(setq modus-themes-italic-constructs t
-      modus-themes-bold-constructs t)
-
-(setq modus-themes-completions
-      '((matches . (extrabold underline))
-        (selection . (semibold italic))))
-
-(setq modus-themes-headings
-      '((1 . (rainbow overline background 1.4))
-        (2 . (rainbow background 1.3))
-        (3 . (rainbow bold 1.2))
-        (t . (semilight 1.1))))
-
-(setq modus-themes-scale-headings t)
-
-(setq modus-themes-org-blocks 'gray-background)
-
- ;; Color customizations
-  (setq modus-themes-prompts '(bold))
-  (setq modus-themes-region '(accented))
-
-  ;; Font sizes for titles and headings, including org
-
-  (load-theme 'modus-operandi-tinted t))
-  
 (use-package nerd-icons
   :custom
   ;; The Nerd Font you want to use in GUI
   ;; "Symbols Nerd Font Mono" is the default and is recommended
   ;; but you can use any other Nerd Font if you want
-  (nerd-icons-font-family "Symbols Nerd Font Mono")
-  )
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
-;; (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
+(set-face-attribute 'mode-line-active nil :inherit 'mode-line)
 
 ;; For current frame
 ;;(set-frame-parameter nil 'alpha-background 80)
@@ -133,8 +102,8 @@
         org-hide-leading-stars t
 	org-pretty-entities t
 	org-hide-emphasis-markers t)
-  (add-hook 'org-mode-hook 'org-indent-mode))
-(add-hook 'text-mode-hook 'turn-on-visual-line-mode)
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-hook 'text-mode-hook 'turn-on-visual-line-mode))
 
 (use-package org-modern
   :ensure t
@@ -151,14 +120,10 @@
 
 (setq org-ellipsis " ▾")
 
-;; (use-package org-modern-indent
-;;   :straight (org-modern-indent :type git :host github :repo "jdtsmith/org-modern-indent")
-;;   :config ; add late to hook
-;;   (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
-
-;; (use-package org-ql
-;;   :quelpa (org-ql :fetcher github :repo "alphapapa/org-ql"
-;; 		  :files (:defaults (:exclude "helm-org-ql.el"))))
+(use-package org-modern-indent
+  :straight (org-modern-indent :type git :host github :repo "jdtsmith/org-modern-indent")
+  :config ; add late to hook
+  (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
 
 (use-package olivetti
   :ensure t
@@ -187,8 +152,8 @@
 
 (setq org-agenda-files '("~/org/"))
 
-(use-package htmlize
-  :ensure t)
+;; (use-package htmlize
+;;   :ensure t)
 
 (use-package git
   :ensure t
@@ -201,13 +166,13 @@
   :config
   (setq org-reveal-root "file:///home/mbrignall/.emacs.d/reveal.js"))
 
-(setq org-ditaa-jar-path "~/.emacs.d/ditaa.jar")
+;; (setq org-ditaa-jar-path "~/.emacs.d/ditaa.jar")
 
-(use-package pdf-tools
-  :load-path "site-lisp/pdf-tools/lisp"
-  :magic ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-tools-install :no-query))
+;; (use-package pdf-tools
+;;   :load-path "site-lisp/pdf-tools/lisp"
+;;   :magic ("%PDF" . pdf-view-mode)
+;;   :config
+;;   (pdf-tools-install :no-query))
 
 
 ;; Copilot -----------------------------------------------
@@ -286,7 +251,6 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
-
 
 ;; Eglot --------------------------------------------------
 
@@ -431,17 +395,33 @@
   :config
   (setq vterm-max-scrollback 10000))
 
-(global-set-key [f2] 'vterm-toggle)
-(global-set-key [C-f2] 'vterm-toggle-cd)
+(use-package vterm-toggle
+  :ensure t
+  :bind
+  (("C-c t" . vterm-toggle)
+   ("C-c T" . vterm-toggle-cd))
+  :config
+  ;; Customize vterm-toggle as needed
+  )
+
+;; Define a function to set the font for vterm
+(defun set-vterm-font ()
+  (interactive)
+  (setq buffer-face-mode-face '(:family "FuraMono Nerd Font" :height 120))
+  (buffer-face-mode 1))
+
+;; Add a hook to apply the font settings when vterm is created
+(add-hook 'vterm-mode-hook 'set-vterm-font)
 
 ;; Treemacs config ------------------------------------------
 
 (use-package treemacs
   :bind ("<f1>" . treemacs))
 
-(use-package treemacs-all-the-icons
-  :after (treemacs)
-  :ensure t)
+(use-package treemacs-nerd-icons
+  :after treemacs
+  :config
+  (treemacs-load-theme "nerd-icons"))
 
 (use-package treemacs-magit
   :after (treemacs magit)
@@ -474,3 +454,31 @@
   :bind (("C-x g" . magit-status)
          ("C-x C-g" . magit-status)))
 
+;; Load Theme -----------------------------------------------
+
+(use-package modus-themes
+  :ensure t
+  :config
+  
+  ;; Add all your customizations prior to loading the themes
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs nil
+	modus-themes-mixed-fonts t
+	modus-themes-variable-pitch-ui nil
+	modus-themes-custom-auto-reload t
+	modus-themes-disable-other-themes t
+	
+	modus-themes-prompts '(italic bold)
+
+	modus-themes-completions
+	'((matches . (extrabold))
+	  (selection . (semibold italic text-also))))
+
+  ;; Maybe define some palette overrides, such as by using our presets
+  (setq modus-themes-common-palette-overrides
+        modus-themes-preset-overrides-intense)
+
+  ;; Load the theme of your choice.
+  (load-theme 'modus-vivendi-tinted)
+  
+  (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
