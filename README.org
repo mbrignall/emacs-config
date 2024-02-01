@@ -18,13 +18,13 @@ To use this configuration, clone this repository into your ~emacs.d~ directory:
 #+END_SRC
 
 * Features
-`
+
 ** Packages
 
 This configuration uses a number of packages to enhance the Emacs experience, including:
 
 - org-mode: For note-taking and project management
-- modus-themes: Currently the tinted version! :p
+- modus-themes: Currently the tinted version! 😛
 - magit: A powerful interface to the Git version control system.
 - ivy & counsel: For efficient, flexible, and intuitive completion.
 - projectile: Project interaction library for Emacs.
